@@ -36,8 +36,8 @@ def extractTextFromPDFs(folder_path):
 
 
 if __name__ == "__main__":
-    # folder_path = "/Users/jacobsomer/Documents/Scale-AI-Hackathon/data_extract/cal-law-pdf/"
-    # extractTextFromPDFs(folder_path)
+    folder_path = "/Users/jacobsomer/Documents/Scale-AI-Hackathon/data_extract/cal-law-pdf/"
+    extractTextFromPDFs(folder_path)
 
     # cal_law_text.txt to string
     cal_law_text = ""
