@@ -1,8 +1,6 @@
 from PyPDF2 import PdfReader
 import os
 import json
-import requests
-import openai
 
 folder_path = "/Users/jacobsomer/Documents/Scale-AI-Hackathon/cal-law-pdf/"
 
@@ -21,24 +19,26 @@ def splitList(list):
             temp_string = ""
     return new_list
 
+# the following is a function that extracts the strings from a folder of pdfs and saves it as a string
 
-def getMetaDatafromText(text):
-    api_key = os.environ["OPENAI_API_KEY"]
-    openai.api_key = api_key
-    text = text + "\n The following is a one sentence medata summary of the above legal text: "
-    response = openai.Completion.create(
-        engine="davinci",
-        prompt=text,
-        temperature=0.9,
-        max_tokens=150,
-        top_p=1,
-        frequency_penalty=0,
-        presence_penalty=0.6,
-    )
-    return response["choices"][0]["text"]
+
+def extractTextFromPDFs(folder_path):
+    text = ""
+    for filename in os.listdir(folder_path):
+        if filename.endswith(".pdf"):
+            with open(os.path.join(folder_path, filename), "rb") as pdf_file:
+                reader = PdfReader(pdf_file)
+                for page in reader.pages:
+                    text += page.extract_text()
+    with open("cal-law-text.txt", "w") as f:
+        f.write(text)
+    return text
 
 
 if __name__ == "__main__":
+    # folder_path = "/Users/jacobsomer/Documents/Scale-AI-Hackathon/data_extract/cal-law-pdf/"
+    # extractTextFromPDFs(folder_path)
+
     # cal_law_text.txt to string
     cal_law_text = ""
     with open("cal-law-text.txt", "r") as f:
@@ -50,15 +50,9 @@ if __name__ == "__main__":
     # split cal_law_text into list of strings less than 2000 words
     cal_law_text = splitList(cal_law_text)
 
-    # get metadata list for each string in cal_law_text
-    max_length = 1000
+    # write cal_law_text to jsonl
     for i in range(len(cal_law_text)):
         extract = cal_law_text[i]
-        meta = getMetaDatafromText(
-            "".join(extract.split(" ")[:max_length]))
-        d = {"text": cal_law_text[i], "metadata": meta}
-        with open("cal-law-text-" + str(i) + ".json", "w") as f:
-            json.dump(d, f)
-        # print progress on the same line
-        print("Progress: " + str(i) +
-              "/" + str(len(cal_law_text)), end="\r")
+        with open("cal-law-text.jsonl", "a") as f:
+            json.dump(
+                {"prompt": extract, "completion": "The above text is from The California Rules of Court Current as of January 1, 2022."}, f)
